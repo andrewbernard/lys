@@ -2,11 +2,10 @@
 -e main -s
 !#
 
-;; TCP client
+;; TCP client for lilypond compile server
 
 (use-modules (ice-9 format))
 (use-modules (ice-9 rdelim))
-(use-modules (local print))
 
 (define port 12000)
 
@@ -27,13 +26,13 @@
     ;; indicate done writing without closing socket.
     ;; a simple protocol. single blank line indicates end of write.
 
-    ;; read server response
+    ;; read
+    ;; get server response
     (let loop ((line (read-line sock)))
       (if (not (eof-object? line))
 	  (begin
-	    (print line)
-	  (loop (read-line sock)))
-	  ))
+	    (format #t "~a\n" line)
+	  (loop (read-line sock)))))
 
     ;; finish
     (shutdown sock 2)
