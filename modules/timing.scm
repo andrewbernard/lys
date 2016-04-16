@@ -1,5 +1,6 @@
 ;; Timing procedures.
 ;; For guile interpreter timing.
+;; Author: Andrew Bernard
 
 (define-module (local timing))
 (export

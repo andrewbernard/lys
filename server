@@ -26,7 +26,6 @@
 	      (let* ((connection (accept' sock-server))
 		     (sock-client (car connection))
 		     (client-details (cdr connection)))
-
 		(format #t "client connection from host: ~a\n"
 			(hostent:name
 			 (gethostbyaddr (sockaddr:addr client-details))))

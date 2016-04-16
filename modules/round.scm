@@ -1,4 +1,5 @@
 ;; Rounding and numerical procedures
+;; Author: Andrew Bernard
 
 (define-module (local round))
 (export
