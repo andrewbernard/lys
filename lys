@@ -1,4 +1,4 @@
 #!/bin/bash
 # Run lilypond compile server.
-lilypond server.scm
+lilypond server
 

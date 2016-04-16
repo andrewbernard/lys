@@ -10,13 +10,7 @@
 (define port 12000)
 
 (define (main args)
-
-  ;; get info
-  ;;(format #t "pid = ~a\n" (getpid))
-  ;;(format #t "ppid = ~a\n" (getppid))
-  ;;(format #t "pgrp = ~a\n" (getpgrp))
-
-  ;; tcp client
+  ;; TCP client
   (let ((sock (socket PF_INET SOCK_STREAM 0)))
     (connect sock AF_INET (inet-aton "127.0.0.1") port)
 
@@ -37,3 +31,7 @@
     ;; finish
     (shutdown sock 2)
     (close-port sock)))
+
+;; Local Variables:
+;; mode: Scheme
+;; End:
