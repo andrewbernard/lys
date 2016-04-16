@@ -1,10 +1,12 @@
-% lilypond server
+% Lilypond compile server
+%
+% Note that this is lilypond code, not Scheme. But it is composed entirely of
+% guile procedures.
 
 \version "2.19.39"
 
 #(begin
-
-   ;; TCP server
+   ;; TCP server side of lilypond compiler server
 
    (use-modules (ice-9 format))
    (use-modules (ice-9 rdelim))
@@ -130,5 +132,6 @@
 	     (primitive-exit 1)
 	     ))))
 
-
-
+;; Local Variables:
+;; mode: Scheme
+;; End:
