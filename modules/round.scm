@@ -25,7 +25,7 @@
     (inexact->exact (truncate x))))
 
 ;; Fractional part of a number.
-;; note that there are different ways of defining this for negative numbers.
+;; Note that there are different ways of defining this for negative numbers.
 (define frac-part
   (lambda (x)
     (- x (floor x))))
