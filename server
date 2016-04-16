@@ -87,17 +87,13 @@
 	 
 	 ;; send response to client
 	 (let* ((time-taken (elapsed-time start-time (stop-timer))))
-	   (format sock "Compile completed in ~a\n" (format-elapsed-time time-taken)))
+	   (format
+	    sock "Compile completed in ~a\n" (format-elapsed-time time-taken)))
 
 	 ;; exit
 	 (shutdown sock 2)
 	 (close-port sock)
-	 (primitive-exit 0)
-	 
-	 )
-       ))
-
-	 )
+	 (primitive-exit 0)))))
 
 % run server
 #(
