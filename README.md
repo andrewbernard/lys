@@ -43,6 +43,9 @@ To use the client:
 
 Output will be produced in the directory the client is run from.
 
+## Installation
+Refer to [Installation](Installation.md).
+
 ## Notes
 This code has been developed under lilypond 2.19.39. Earlier versions have not
 been tested.
@@ -67,6 +70,8 @@ them in the generated output. This especially applies to include paths, which
 is a non trivial problem (but solved by my flatten-ly utility).
 
 #### Development
+Refer to [Development Notes](Development-Notes.md) for technical discussion of current issues.
+
 See [TODO](TODO.md) for current status and topics.
 
 The Guile 1.8 reference manual is

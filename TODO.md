@@ -1,5 +1,4 @@
 # TODO
-Development notes
 
 #### Server
 - Add daemon capability
@@ -10,6 +9,6 @@ Development notes
 - Add -d options (in progress)
 - Add standard options (in progress)
 - Add port specification
-
+- Allow connection to hosts apart from currently hardwired localhost.
 #### Documentation
 - Write it
