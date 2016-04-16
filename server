@@ -97,29 +97,7 @@
 	 )
        ))
 
-   ;; perform wait for child process
-   (define sigchld-handler
-     (lambda (arg)
-       (let ((return (waitpid 0)))
-	 (format #t "waitpid: ~a\n" return)
 	 )
-       ))
-
-
-   ;; testing junk
-
-   ;; cat file
-   (define cat-file
-     (lambda (file port)
-       (let* ((file-port (open-file file "r")))
-	 (let loop ((line (read-line file-port)))
-	   (if (not (eof-object? line))
-	       (begin
-		 (write-line line port)
-		 (loop (read-line file-port)))
-	       ))
-	 (close-port file-port)
-	 ))))
 
 % run server
 #(
