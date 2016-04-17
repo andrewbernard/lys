@@ -1,4 +1,7 @@
 #!/bin/bash
 # Run lilypond compile server.
+
+export GUILE_LOAD_PATH=~/lib/scheme:$GUILE_LOAD_PATH
+
 lilypond server
 
