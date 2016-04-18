@@ -1,16 +1,18 @@
 % Lilypond compile server
 %
 % Note that this is lilypond code, not Scheme. But it is composed entirely of
-% guile procedures.
+% guile procedures. This will run under the guile 1.8 that is installed
+% locally inside the lilypond distribution.
 
 \version "2.19.39"
 
 #(begin
-   ;; TCP server side of lilypond compiler server
+   ;; TCP server side of lilypond compile server
 
-   (use-modules (ice-9 format))
-   (use-modules (ice-9 rdelim))
-   (use-modules (local timing))
+   (use-modules
+    (ice-9 format)
+    (ice-9 rdelim)
+    (local timing))
 
    (define port 12000)
 
