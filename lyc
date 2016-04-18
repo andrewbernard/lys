@@ -6,7 +6,8 @@
 
 (use-modules
  (ice-9 format)
- (ice-9 rdelim))
+ (ice-9 rdelim)
+ (local path))
 
 (define port 12000)
 
@@ -17,7 +18,8 @@
 
     ;; write
     ;; send command line args to server
-    (write-line (cadr args) sock)
+    ;; we have to send the absolute pathname of the file
+    (write-line (realpath (cadr args)) sock)
     ;; indicate done writing without closing socket.
     ;; uses a simple protocol - a single blank line indicates end of write.
 

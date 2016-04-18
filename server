@@ -12,7 +12,8 @@
    (use-modules
     (ice-9 format)
     (ice-9 rdelim)
-    (local timing))
+    (local timing)
+    (local path))
 
    (define port 12000)
 
@@ -66,9 +67,16 @@
        ;; get file name and command line options.
        ;; set up options and get lilypond to compile the file.
        ;; ...
-       (let ((filename (read-line sock 'trim))
-	     (start-time (start-timer)))
+       (let* ((filename (read-line sock 'trim))
+	     (start-time (start-timer))
+	     (current-dir (getcwd))
+	     (dir (dirname filename))
+	     (file (basename filename))
+	     )
 	 (format #t "file: ~a\n" filename)
+	 (format #t "dir: ~a\n" dir)
+	 (format #t "file: ~a\n" file)
+	 
 	 ;; lilypond outputs messages on stderr. send them to the client.
 	 (redirect-port sock (current-error-port))
 	 
@@ -77,7 +85,7 @@
 		  (begin
 		    (ly:set-option 'verbose #t)
 		    ;; do the main work - compile the source file.
-		    (ly:parse-file filename)
+		    (ly:parse-file file)
 		    ))
 		(lambda (key . parameters)
 		  (begin
@@ -85,6 +93,8 @@
 		    (shutdown sock 1)
 		    (primitive-exit 1)
 		    )))
+	 
+	 (chdir current-dir)
 	 
 	 ;; send response to client
 	 (let* ((time-taken (elapsed-time start-time (stop-timer))))
