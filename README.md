@@ -39,7 +39,7 @@ another request.
 
 To use the client:
 
-> lyc file.ly
+> lyc \<file.ly\>
 
 Output will be produced in the directory the client is run from.
 

@@ -5,21 +5,32 @@
 # code version
 VERSION = 0.1
 
-# rpm package version
-RELEASE = 1
-
 # output file
-OUT = lys-$(VERSION)-$(RELEASE).tgz
+OUT = lys-$(VERSION).tgz
 
 FILES = lys \
 	server \
 	lyc
 
+DIR = lys-$(VERSION)
+
+RPM-INSTALL = $(HOME)/rpmbuild/SOURCES
+
 all: $(OUT)
 
 $(OUT): $(FILES)
-	tar cvzf $(OUT) $(FILES)
+	mkdir -p $(DIR)
+	cp $(FILES) $(DIR)
+	tar cvzf $(OUT) $(DIR)
+
+# rpm install
+install: $(OUT)
+	cp $(OUT) $(RPM-INSTALL)
+
 clean:
 	rm -f $(OUT)
+	rm -rf $(DIR)
+
+
 
 

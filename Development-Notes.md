@@ -8,11 +8,12 @@ The server will be fully daemonised shortly.
 ##### Lilypond options
 
 Lilypond annoyingly has two distinct types of options, the standard -- style
-options and a set starting with -d. Because we effectively have to rewrite the
-lilypond command line option parsing to make this system work, this introduces
-a lot of (unnecesary) difficulties. I am working on this at the moment. I can
-see why lilypond may have developed two partioned option spaces, but it is
-really unecessary in my opinion, but obviously can never be changed.
+options and a set starting with -d (the so-called advanced options). Because
+we effectively have to rewrite the lilypond command line option parsing to
+make this system work, this introduces a lot of (unnecesary) difficulties. I
+am working on this at the moment. I can see why lilypond may have developed
+two partioned option spaces, but it is really unecessary in my opinion, but
+obviously can never be changed.
 
 The client option syntax will be rationalised and not be an exact copy of how
 lilypond specifies options. The client is not meant to be an exact lilypond

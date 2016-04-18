@@ -42,7 +42,7 @@ Installs to /usr/local.
 
 This is a relocatable package in case you want it elsewhere:
 
-> $ sudo rpm --install --prefix=<location> lys-0.1-1.rpm
+> $ sudo rpm --install --prefix=\<location\> lys-0.1-1.rpm
 
 #### DEB based systems
 
