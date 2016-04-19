@@ -17,11 +17,16 @@
     (connect sock AF_INET (inet-aton "127.0.0.1") port)
 
     ;; write
+    ;; send current working directory to server so that output is produced in this
+    ;; directory.
+    (write-line (getcwd) sock)
+    
     ;; send command line args to server
     ;; we have to send the absolute pathname of the file
-    (format #t "file: ~a\n" (realpath (cadr args)))
     (write-line (realpath (cadr args)) sock)
     ;; indicate done writing without closing socket.
+
+    ;; not true now. fix comment later.
     ;; uses a simple protocol - a single blank line indicates end of write.
 
     ;; read

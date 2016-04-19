@@ -64,19 +64,23 @@
    (define child-process
      (lambda (sock)
        ;; read from the client
-       ;; get file name and command line options.
-       ;; set up options and get lilypond to compile the file.
-       ;; ...
-       (let* ((filename (read-line sock 'trim))
+       ;; in order to output in the directory the client is run from
+       ;; the client send us its working directory first.
+       ;; Then we get the file name and command line options.
+       (let* ((client-working-dir (read-line sock 'trim))
+	      (filename (read-line sock 'trim))
 	     (start-time (start-timer))
 	     (current-dir (getcwd))
 	     (dir (dirname filename))
 	     (file (basename filename))
 	     )
+	 (format #t "current working directory for server: ~a\n" current-dir)
+	 (format #t "current working directory for client: ~a\n" client-working-dir)
+	 
 	 (format #t "file: ~a\n" filename)
 	 (format #t "dir: ~a\n" dir)
 	 (format #t "file: ~a\n" file)
-	 (chdir dir)
+	 (chdir client-working-dir)
 	 
 	 ;; lilypond outputs messages on stderr. send them to the client.
 	 (redirect-port sock (current-error-port))
@@ -84,9 +88,9 @@
 	 (catch #t
 		(lambda ()
 		  (begin
-		    (ly:set-option 'verbose #t)
+		    ;;(ly:set-option 'verbose #t)
 		    ;; do the main work - compile the source file.
-		    (ly:parse-file file)
+		    (ly:parse-file filename)
 		    ))
 		(lambda (key . parameters)
 		  (begin
