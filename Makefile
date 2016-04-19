@@ -11,6 +11,7 @@ OUT = lys-$(VERSION).tgz
 FILES = lys \
 	lys-server \
 	lyc \
+	lyc-client \
 	modules
 
 DIR = lys-$(VERSION)

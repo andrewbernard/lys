@@ -76,6 +76,7 @@
 	 (format #t "file: ~a\n" filename)
 	 (format #t "dir: ~a\n" dir)
 	 (format #t "file: ~a\n" file)
+	 (chdir dir)
 	 
 	 ;; lilypond outputs messages on stderr. send them to the client.
 	 (redirect-port sock (current-error-port))
@@ -93,7 +94,6 @@
 		    (shutdown sock 1)
 		    (primitive-exit 1)
 		    )))
-	 
 	 (chdir current-dir)
 	 
 	 ;; send response to client

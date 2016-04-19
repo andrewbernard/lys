@@ -3,5 +3,3 @@
 
 export GUILE_LOAD_PATH=/usr/local/share/lys/lib/scm:$GUILE_LOAD_PATH
 lilypond /usr/local/share/lys/bin/lys-server
-
-
