@@ -14,9 +14,12 @@ FILES = lys \
 	lyc-client \
 	modules
 
+RPM-SPEC = rpm/lys.spec
+
 DIR = lys-$(VERSION)
 
-RPM-INSTALL = $(HOME)/rpmbuild/SOURCES
+RPM-SPEC-DIR = $(HOME)/rpmbuild/SPECS
+RPM-INSTALL-DIR = $(HOME)/rpmbuild/SOURCES
 
 all: $(OUT)
 
@@ -27,7 +30,8 @@ $(OUT): $(FILES)
 
 # rpm install
 install: $(OUT)
-	cp $(OUT) $(RPM-INSTALL)
+	cp $(OUT) $(RPM-INSTALL-DIR)
+	cp $(RPM-SPEC) $(RPM-SPEC-DIR)
 
 clean:
 	rm -f $(OUT)
