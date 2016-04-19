@@ -1,40 +1,6 @@
-#!/usr/bin/guile1 \
--e main -s
-!#
+#!/bin/bash
+# TCP client wrapper for lilypond compile server
 
-;; TCP client for lilypond compile server
+export GUILE_LOAD_PATH=/usr/local/share/lys/lib/scm:$GUILE_LOAD_PATH
+exec ./lyc-client
 
-(use-modules
- (ice-9 format)
- (ice-9 rdelim)
- (local path))
-
-(define port 12000)
-
-(define (main args)
-  ;; TCP client
-  (let ((sock (socket PF_INET SOCK_STREAM 0)))
-    (connect sock AF_INET (inet-aton "127.0.0.1") port)
-
-    ;; write
-    ;; send command line args to server
-    ;; we have to send the absolute pathname of the file
-    (write-line (realpath (cadr args)) sock)
-    ;; indicate done writing without closing socket.
-    ;; uses a simple protocol - a single blank line indicates end of write.
-
-    ;; read
-    ;; get server response
-    (let loop ((line (read-line sock)))
-      (if (not (eof-object? line))
-	  (begin
-	    (format #t "~a\n" line)
-	    (loop (read-line sock)))))
-    
-    ;; finish
-    (shutdown sock 2)
-    (close-port sock)))
-
-;; Local Variables:
-;; mode: Scheme
-;; End:
