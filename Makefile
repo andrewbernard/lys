@@ -1,4 +1,4 @@
-# Makefile for lys, the lilypond compile server
+# Makefile for lys, a lilypond compile server
 
 # Makes a compressed tar file for use in building an RPM package.
 
@@ -9,8 +9,9 @@ VERSION = 0.1
 OUT = lys-$(VERSION).tgz
 
 FILES = lys \
-	server \
-	lyc
+	lys-server \
+	lyc \
+	modules
 
 DIR = lys-$(VERSION)
 
@@ -20,7 +21,7 @@ all: $(OUT)
 
 $(OUT): $(FILES)
 	mkdir -p $(DIR)
-	cp $(FILES) $(DIR)
+	cp -r $(FILES) $(DIR)
 	tar cvzf $(OUT) $(DIR)
 
 # rpm install
@@ -30,7 +31,3 @@ install: $(OUT)
 clean:
 	rm -f $(OUT)
 	rm -rf $(DIR)
-
-
-
-
