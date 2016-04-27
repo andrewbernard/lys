@@ -4,7 +4,7 @@
 % guile procedures. This will run under the guile 1.8 that is installed
 % locally inside the lilypond distribution.
 
-\version "2.19.39"
+\version "2.19.40"
 
 #(begin
    ;; TCP server side of lilypond compile server
