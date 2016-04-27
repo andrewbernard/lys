@@ -10,7 +10,7 @@ Standards-Version: 3.9.6
 
 Package: lys
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, guile-1.8
 Description: Lilypond compile server
  Lys is a client server for compiling lilypond source files.
  

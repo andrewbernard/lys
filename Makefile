@@ -69,7 +69,7 @@ build-deb:
 	cd $(DIR); debuild -us -uc
 
 build-deb-clean:
-	rm -f *.build *.changes *.deb *.debian.tar.xz
+	rm -f *.build *.changes *.dsc *.deb *.debian.tar.xz
 
 # build RPM package
 build-rpm:
