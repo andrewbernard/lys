@@ -1,0 +1,126 @@
+% Lilypond compile server
+%
+% Note that this is lilypond code, not Scheme. But it is composed entirely of
+% guile procedures. This will run under the guile 1.8 that is installed
+% locally inside the lilypond distribution.
+
+\version "2.19.40"
+
+#(begin
+   ;; TCP server side of lilypond compile server
+
+   (use-modules
+    (ice-9 format)
+    (ice-9 rdelim)
+    (local timing)
+    (local path))
+
+   (define port 12000)
+
+   (define (main args)
+     ;; tcp server
+     (let ((sock-server (socket PF_INET SOCK_STREAM 0)))
+       (setsockopt sock-server SOL_SOCKET SO_REUSEADDR 1)
+       (bind sock-server AF_INET INADDR_ANY port)
+       (listen sock-server 5)
+       (format #t "lilypond compile server listening on port ~a\n" port)
+
+       (while #t
+	      (let* ((connection (accept' sock-server))
+		     (sock-client (car connection))
+		     (client-details (cdr connection)))
+		(format #t "client connection from host: ~a\n"
+			(hostent:name
+			 (gethostbyaddr (sockaddr:addr client-details))))
+		(fork-process-twice sock-client)
+		))))
+
+   ;; accept that handles EINTR
+   (define accept'
+     (lambda (sock)
+       (let loop ()
+	 (catch 'system-error
+		(lambda () (accept sock))
+		(lambda (key . parameters)
+		  (begin
+		    ;;(format #t "key ~a parameters ~a\n" key parameters)
+		    ;; EINTR is normal and expected here
+		    (loop) ;; try again after EINTR
+		    ))))))
+
+   ;; fork child. double fork to decouple fully.
+   (define fork-process-twice
+     (lambda (sock)
+       (let* ((pid (primitive-fork)))
+	 (if (zero? pid)
+	     (begin
+	       (let* ((pid (primitive-fork)))
+		 (if (zero? pid) (child-process sock)) ;; run in grandchild
+		 (primitive-exit) ;; child exit
+		 ))
+	     (waitpid pid)))))
+   
+   ;; child process to do the work
+   (define child-process
+     (lambda (sock)
+       ;; read from the client
+       ;; in order to output in the directory the client is run from
+       ;; the client send us its working directory first.
+       ;; Then we get the file name and command line options.
+       (let* ((client-working-dir (read-line sock 'trim))
+	      (filename (read-line sock 'trim))
+	     (start-time (start-timer))
+	     (current-dir (getcwd))
+	     (dir (dirname filename))
+	     (file (basename filename))
+	     )
+	 (format #t "current working directory for server: ~a\n" current-dir)
+	 (format #t "current working directory for client: ~a\n" client-working-dir)
+	 
+	 (format #t "file: ~a\n" filename)
+	 (format #t "dir: ~a\n" dir)
+	 (format #t "file: ~a\n" file)
+	 (chdir client-working-dir)
+	 
+	 ;; lilypond outputs messages on stderr. send them to the client.
+	 (redirect-port sock (current-error-port))
+	 
+	 (catch #t
+		(lambda ()
+		  (begin
+		    ;;(ly:set-option 'verbose #t)
+		    ;; do the main work - compile the source file.
+		    (ly:parse-file filename)
+		    ))
+		(lambda (key . parameters)
+		  (begin
+		    (format #t "caught lilypond processing error: ~a: ~a\n" key parameters)
+		    (shutdown sock 1)
+		    (primitive-exit 1)
+		    )))
+	 (chdir current-dir)
+	 
+	 ;; send response to client
+	 (let* ((time-taken (elapsed-time start-time (stop-timer))))
+	   (format
+	    sock "Compile completed in ~a\n" (format-elapsed-time time-taken)))
+
+	 ;; exit
+	 (shutdown sock 2)
+	 (close-port sock)
+	 (primitive-exit 0)))))
+
+% run server
+#(
+  (catch #t
+	 (lambda ()
+	   (main port))
+	 (lambda (key . parameters)
+	   (begin
+	     (format #t "caught error: ~a\n~a\n" key parameters)
+	     (primitive-exit 1)
+	     ))))
+
+;; Local Variables:
+;; mode: Scheme
+;; End:

@@ -1,0 +1,4 @@
+# do not install into /usr/local on Debian with Debian packages.
+usr/share/lys/bin
+usr/share/lys/lib/scm/local
+

@@ -1,0 +1,9 @@
+Package: lys
+Version: 0.1-1
+Architecture: amd64
+Maintainer: Andrew Bernard <andrew.bernard@gmail.com>
+Installed-Size: 50
+Section: contrib/utils
+Priority: optional
+Description: Lilypond compile server
+ Lys is a client server for compiling lilypond source files.

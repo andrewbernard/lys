@@ -1,0 +1,44 @@
+#!/usr/bin/guile \
+-e main -s
+!#
+
+;; TCP client for lilypond compile server
+
+(use-modules
+ (ice-9 format)
+ (ice-9 rdelim)
+ (local path))
+
+(define (main args)
+  (define port 12000)
+
+  ;; TCP client
+  (let ((sock (socket PF_INET SOCK_STREAM 0)))
+    (connect sock AF_INET (inet-aton "127.0.0.1") port)
+
+    ;; write
+
+    ;; send current working directory to server so that output is produced in
+    ;; this directory.
+    (write-line (getcwd) sock)
+    
+    ;; send command line args to server
+    ;; we have to send the absolute pathname of the file
+    (write-line (realpath (cadr args)) sock)
+    ;; indicate done writing without closing socket.
+
+    ;; read
+    ;; get server response
+    (let loop ((line (read-line sock)))
+      (if (not (eof-object? line))
+	  (begin
+	    (format #t "~a\n" line)
+	    (loop (read-line sock)))))
+    
+    ;; finish
+    (shutdown sock 2)
+    (close-port sock)))
+
+;; Local Variables:
+;; mode: Scheme
+;; End:
