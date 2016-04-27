@@ -9,8 +9,8 @@ Standards-Version: 3.9.6
 #Vcs-Browser: http://anonscm.debian.org/?p=collab-maint/lys.git;a=summary
 
 Package: lys
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, guile-1.8
 Description: Lilypond compile server
  Lys is a client server for compiling lilypond source files.
- 
+
