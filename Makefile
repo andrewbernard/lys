@@ -96,9 +96,6 @@ distclean-rpm:
 	rm -f $(DIST_FILE_RPM)
 	@echo more to do later
 
-test:
-	@echo rpmbuild area is $(RPMBUILD)
-
 # build RPM package
 build-rpm:
 	@echo building RPM
