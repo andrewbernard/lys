@@ -25,11 +25,18 @@ libdir = $(prefix)/lib
 # code version
 VERSION = 0.1
 
-# distribution file
+# DEB distribution file
 DIST_FILE = $(PACKAGE)_$(VERSION).orig.tar.xz
 
-# distribution dir
+# DEB distribution dir
 DIR = $(PACKAGE)-$(VERSION)
+
+# RPM distribution file
+DIST_FILE_RPM = $(PACKAGE)-$(VERSION).tar.xz
+
+# RPM distribution dir
+DIR_RPM = $(PACKAGE)-$(VERSION)
+
 
 PROGS = lys \
 	lys-server \
@@ -47,6 +54,7 @@ install:
 	@echo install scheme modules
 	cp -r $(SCHEME_MODULES_DIR) $(DESTDIR)$(libdir)
 
+# DEB package
 dist: $(DIST_FILE)
 	@echo $(DIST_FILE) up to date
 
@@ -71,11 +79,32 @@ build-deb:
 build-deb-clean:
 	rm -f *.build *.changes *.dsc *.deb *.debian.tar.xz
 
+# RPM package
+RPMBUILD = $(shell pwd)/rpmbuild
+
+dist-rpm: $(DIST_FILE_RPM)
+	@echo $(DIST_FILE_RPM) up to date
+
+$(DIST_FILE_RPM): $(PROGS) $(SCHEME_MODULES)
+	mkdir -p $(DIR_RPM)
+	cp -r $(PROGS) $(DIR)
+	cp -r $(SCHEME_MODULES_DIR) $(DIR)
+	tar cvf $(DIST_FILE_RPM) --xz $(DIR)
+
+distclean-rpm:
+	rm -rf $(DIR)
+	rm -f $(DIST_FILE_RPM)
+	@echo more to do later
+
+test:
+	@echo rpmbuild area is $(RPMBUILD)
+
 # build RPM package
 build-rpm:
-
+	@echo building RPM
+	cp $(DIST_FILE_RPM) rpmbuild/SOURCES
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba rpmbuild/SPECS/lys.spec
 
 clean: build-deb-clean
 
-realclean: clean distclean
-
+realclean: clean distclean distclean-rpm
