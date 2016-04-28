@@ -5,12 +5,12 @@ Maintainer: Andrew Bernard <andrew.bernard@gmail.com>
 Build-Depends: debhelper (>= 9)
 Standards-Version: 3.9.6
 #Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: git://anonscm.debian.org/collab-maint/lys.git
-#Vcs-Browser: http://anonscm.debian.org/?p=collab-maint/lys.git;a=summary
+Vcs-Git: https://github.com/andrewbernard/lys.git
+Vcs-Browser: https://github.com/andrewbernard/lys
 
 Package: lys
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, guile-1.8
 Description: Lilypond compile server
- Lys is a client server for compiling lilypond source files.
-
+ Lys is a server for compiling lilypond source files. The client
+ program lyc is used for submitting source files to be compiled.
