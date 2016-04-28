@@ -70,7 +70,7 @@ distclean:
 	rm -f $(DIST_FILE)
 
 # build DEB package
-build-deb:
+build-deb: dist
 	tar xvf $(DIST_FILE)
 	ls -l $(DIST_FILE)
 	cp -r debian $(DIR)
@@ -97,10 +97,12 @@ distclean-rpm:
 	@echo more to do later
 
 # build RPM package
-build-rpm:
+build-rpm: dist-rpm
 	@echo building RPM
 	cp $(DIST_FILE_RPM) rpmbuild/SOURCES
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba rpmbuild/SPECS/lys.spec
+	@echo "=> RPM file: "`realpath rpmbuild/RPMS/noarch/lys*.rpm`
+
 
 clean: build-deb-clean
 

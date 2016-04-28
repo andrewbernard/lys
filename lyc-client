@@ -14,7 +14,7 @@
 
   ;; TCP client
   (let ((sock (socket PF_INET SOCK_STREAM 0)))
-    (connect sock AF_INET (inet-aton "127.0.0.1") port)
+    (connect sock AF_INET (inet-pton AF_INET "127.0.0.1") port)
 
     ;; write
 

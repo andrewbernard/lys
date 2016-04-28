@@ -1,7 +1,5 @@
-#
-# spec file for package lys
-
-# See also http://en.opensuse.org/openSUSE:Specfile_guidelines
+# RPM spec file for package lys
+# openSUSE specific
 
 Name:           lys
 Version:        0.1
@@ -11,7 +9,7 @@ License:        GPL-2.0+
 URL:            https://github.com/andrewbernard/lys/releases/tag/v0.1-alpha
 Source0:        %{name}-%{version}.tar.xz
 BuildArch:      noarch
-BuildRoot:      /tmp
+Requires:       guile1
 Prefix:         /usr/share
 
 %description
