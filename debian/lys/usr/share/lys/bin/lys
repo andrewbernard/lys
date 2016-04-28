@@ -1,5 +1,0 @@
-#!/bin/bash
-# Run lilypond compile server
-
-export GUILE_LOAD_PATH=/usr/share/lys/lib/scm:$GUILE_LOAD_PATH
-lilypond /usr/share/lys/bin/lys-server

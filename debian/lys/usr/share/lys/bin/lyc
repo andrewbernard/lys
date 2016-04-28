@@ -1,6 +1,0 @@
-#!/bin/bash
-# TCP client wrapper for lilypond compile server
-
-export GUILE_LOAD_PATH=/usr/share/lys/lib/scm:$GUILE_LOAD_PATH
-/usr/share/lys/bin/lyc-client $@
-
