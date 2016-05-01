@@ -4,9 +4,9 @@
 % Notes
 
 % This is lilypond code, not Scheme. But it is composed entirely of
-% guile procedures. This will run under the guile 1.8 that is installed
+% guile procedures. This will run using the guile version 1.8 that is installed
 % locally inside the lilypond distribution.
-%
+
 
 \version "2.19.40"
 
@@ -254,7 +254,14 @@
 	 )))
 
    (define (show-usage)
-     (format #t "usage: \n"))
+     (prnt "Usage: lys [OPTION]...\n")
+     (prnt "Run lys, the lilypond compile server.\n")
+     (prnt "Options:")
+     (prnt "  -d --daemon     run as a daemon")
+     (prnt "  -p --port PORT  listen on port PORT")
+     (prnt "  -h --help       show usage")
+     (prnt "  -v --version    show program version")
+     )
 
    (define (show-version)
      (format #t "lyc ~a \n" version)))

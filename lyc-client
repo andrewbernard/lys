@@ -7,52 +7,103 @@
 (use-modules
  (ice-9 format)
  (ice-9 rdelim)
- (local path))
+ (srfi srfi-1)
+ (local path)
+ (local print)
+ (local getopt-long-acb))
 
 (define version "0.1")
 
 (define (main args)
-  (define port 12000)
+  (define port-number 12000)
 
-  ;; args
-  ;; version request
-  (if (string=? (cadr args) "--version")
-      (begin
-	(show-version)
-	(primitive-exit 0)))
-  
+  ;; process args
+  ;; get the client options, and the lilypond options.
+  ;; args before -- are the client options.
+  ;; args remaining after -- are passed to lilypond at the server side.
+  ;; the filename must be the last argument.
+  (let* ((opt-spec
+	  '((version (single-char #\v) (value #f))
+	    (help (single-char #\h) (value #f))
+	    (port (single-char #\p) (value #t))))
 
-  ;; TCP client
-  (let ((sock (socket PF_INET SOCK_STREAM 0)))
-    (connect sock AF_INET (inet-pton AF_INET "127.0.0.1") port)
+	 ;; catch any option processing errors.
+	 (opts
+	  (catch #t
+		 (lambda ()
+		   (getopt-long args opt-spec))
+		 (lambda (key . parameters)
+		   (begin
+		     (format
+		      #t "option processing error: ~a: ~a\n" key parameters)
+		     (primitive-exit 1)))))
 
-    ;; write
+	 (help-set (option-ref opts 'help #f))
+	 (version-set (option-ref opts 'version #f))
+	 (port
+	  (inexact->exact (string->number
+			   (option-ref opts 'port (number->string port-number)))))
+	 (remaining-args (option-ref opts '() '()))
+	 (file (last remaining-args))
+	 )
+	 
+    (prnt "port " port)
+    (prnt "args: " args)
+    (prnt opt-spec)
+    (prnt opts)
+    (prnt "arguments after --: " remaining-args)
+    (prnt "list? " (list? remaining-args))
+    (prnt "file: " file)
 
-    ;; send current working directory to server so that output is produced in
-    ;; this directory.
-    (write-line (getcwd) sock)
+    (if help-set
+	(begin
+	  (show-usage)
+	  (primitive-exit 0)))
+    (if version-set
+	(begin
+	  (show-version)
+	  (primitive-exit 0)))
+
     
-    ;; send command line args to server
-    ;; we have to send the absolute pathname of the file
-    (write-line (realpath (cadr args)) sock)
-    ;; indicate done writing without closing socket.
+    ;; TCP client
+    (let ((sock (socket PF_INET SOCK_STREAM 0)))
+      (connect sock AF_INET (inet-pton AF_INET "127.0.0.1") port)
 
-    ;; read
-    ;; get server response
-    (let loop ((line (read-line sock)))
-      (if (not (eof-object? line))
-	  (begin
-	    (format #t "~a\n" line)
-	    (loop (read-line sock)))))
-    
-    ;; finish
-    (shutdown sock 2)
-    (close-port sock)))
+      ;; write
 
+      ;; send current working directory to server so that output is produced in
+      ;; this directory.
+      (write-line (getcwd) sock)
+      
+      ;; send command line args to server (minus the local client options)
+      ;; we have to send the absolute pathname of the file
+      (write-line (realpath file) sock)
+      ;; indicate done writing without closing socket.
+
+      ;; read
+      ;; get server response
+      (let loop ((line (read-line sock)))
+	(if (not (eof-object? line))
+	    (begin
+	      (format #t "~a\n" line)
+	      (loop (read-line sock)))))
+      
+      ;; finish
+      (shutdown sock 2)
+      (close-port sock))))
 
 (define (show-usage)
-  n(format #t "usage: \n")
-  )
+     (prnt "Usage: lyc [OPTION]... [--] [LILYPOND-OPTION]... FILE\n")
+     (prnt "Compile FILE with the lys lilypond compile server\n")
+     (prnt "Options:\n")
+     (prnt "lyc options:")
+     (prnt "  -p --port PORT  connect on port PORT")
+     (prnt "  -h --help       show usage")
+     (prnt "  -v --version    show program version\n")
+     (prnt "lilypond options:")
+     (prnt "  --              if there are lyc options, pass lilypond options after --")
+     (prnt "                  otherwise just specify the lilypond options")
+     )
 
 (define (show-version)
   (format #t "lyc ~a \n" version)
