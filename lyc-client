@@ -44,8 +44,7 @@
 	  (inexact->exact (string->number
 			   (option-ref opts 'port (number->string port-number)))))
 	 (remaining-args (option-ref opts '() '()))
-	 (file (last remaining-args))
-	 )
+	 (file (if (not (null? remaining-args)) (last remaining-args) #f)))
 	 
     (prnt "port " port)
     (prnt "args: " args)
@@ -63,6 +62,11 @@
 	(begin
 	  (show-version)
 	  (primitive-exit 0)))
+
+    (if (not file)
+	(begin
+	  (prnt "file not specified")
+	  (primitive-exit 1)))
 
     
     ;; TCP client
