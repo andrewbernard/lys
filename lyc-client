@@ -9,8 +9,18 @@
  (ice-9 rdelim)
  (local path))
 
+(define version "0.1")
+
 (define (main args)
   (define port 12000)
+
+  ;; args
+  ;; version request
+  (if (string=? (cadr args) "--version")
+      (begin
+	(show-version)
+	(primitive-exit 0)))
+  
 
   ;; TCP client
   (let ((sock (socket PF_INET SOCK_STREAM 0)))
@@ -38,6 +48,15 @@
     ;; finish
     (shutdown sock 2)
     (close-port sock)))
+
+
+(define (show-usage)
+  n(format #t "usage: \n")
+  )
+
+(define (show-version)
+  (format #t "lyc ~a \n" version)
+  )
 
 ;; Local Variables:
 ;; mode: Scheme

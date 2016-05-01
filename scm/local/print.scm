@@ -3,14 +3,15 @@
 ;; acb
 
 (define-module (local print))
-(export print)
+(export prnt)
 
-(define (print . args)
+;; Namde prnt to avoid clash with lilypond print function
+(define (prnt . args)
   "Simple print."
   (cond
    ((not (null? args))
     (display (car args))
     (display " ")
-    (apply print (cdr args)))
-   (else (newline))
-   ))
+    (apply prnt (cdr args)))
+   (else (newline))))
+

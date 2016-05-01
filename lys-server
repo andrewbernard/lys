@@ -1,8 +1,12 @@
 % Lilypond compile server
 %
-% Note that this is lilypond code, not Scheme. But it is composed entirely of
+
+% Notes
+
+% This is lilypond code, not Scheme. But it is composed entirely of
 % guile procedures. This will run under the guile 1.8 that is installed
 % locally inside the lilypond distribution.
+%
 
 \version "2.19.40"
 
@@ -12,28 +16,77 @@
    (use-modules
     (ice-9 format)
     (ice-9 rdelim)
+    (ice-9 receive)
+    (ice-9 string-fun)
+    (srfi srfi-1)
+    (srfi srfi-37)
     (local timing)
-    (local path))
+    (local path)
+    (local print)
+    (local getopt-long-acb)
+    (local typed-opts))
 
-   (define port 12000)
+   ;; program version
+   (define version "0.1")
+
+   ;; port
+   (define port-number 12000)
 
    (define (main args)
-     ;; tcp server
-     (let ((sock-server (socket PF_INET SOCK_STREAM 0)))
-       (setsockopt sock-server SOL_SOCKET SO_REUSEADDR 1)
-       (bind sock-server AF_INET INADDR_ANY port)
-       (listen sock-server 5)
-       (format #t "lilypond compile server listening on port ~a\n" port)
 
-       (while #t
-	      (let* ((connection (accept' sock-server))
-		     (sock-client (car connection))
-		     (client-details (cdr connection)))
-		(format #t "client connection from host: ~a\n"
-			(hostent:name
-			 (gethostbyaddr (sockaddr:addr client-details))))
-		(fork-process-twice sock-client)
-		))))
+     ;; process server args
+     (let* ((opt-spec
+	     '((version (single-char #\v) (value #f))
+	       (help (single-char #\h) (value #f))
+	       (port (single-char #\p) (value #t))
+	       (daemon (single-char #\d) (value #f))))
+	    ;; catch any option processing errors.
+	    (opts
+	     (catch #t
+		    (lambda ()
+		      (getopt-long args opt-spec))
+		    (lambda (key . parameters)
+		      (begin
+			(format
+			 #t "option processing error: ~a: ~a\n" key parameters)
+			(primitive-exit 1)))))
+
+	    (help-set (option-ref opts 'help #f))
+	    (version-set (option-ref opts 'version #f))
+	    (daemon-set (option-ref opts 'daemon #f))
+	    (port (inexact->exact (string->number (option-ref opts 'port (number->string port-number)))))
+
+	    )
+       (prnt "port " port)
+       (prnt "args: " args)
+       (prnt opt-spec)
+       (prnt opts)
+       (if help-set
+	   (begin
+	     (show-usage)
+	     (primitive-exit 0)))
+       (if version-set
+	   (begin
+	     (show-version)
+	     (primitive-exit 0)))
+
+       ;; tcp server
+       (let ((sock-server (socket PF_INET SOCK_STREAM 0)))
+	 (setsockopt sock-server SOL_SOCKET SO_REUSEADDR 1)
+	 (bind sock-server AF_INET INADDR_ANY port)
+	 (listen sock-server 5)
+	 (format #t "lilypond compile server listening on port ~a\n" port)
+	 (prnt port)
+	 (while #t
+		(let* ((connection (accept' sock-server))
+		       (sock-client (car connection))
+		       (client-details (cdr connection)))
+		  (format #t "client connection from host: ~a\n"
+			  (hostent:name
+			   (gethostbyaddr (sockaddr:addr client-details))))
+		  (fork-process-twice sock-client)
+		  )))))
+   
 
    ;; accept that handles EINTR
    (define accept'
@@ -69,11 +122,11 @@
        ;; Then we get the file name and command line options.
        (let* ((client-working-dir (read-line sock 'trim))
 	      (filename (read-line sock 'trim))
-	     (start-time (start-timer))
-	     (current-dir (getcwd))
-	     (dir (dirname filename))
-	     (file (basename filename))
-	     )
+	      (start-time (start-timer))
+	      (current-dir (getcwd))
+	      (dir (dirname filename))
+	      (file (basename filename))
+	      )
 	 (format #t "current working directory for server: ~a\n" current-dir)
 	 (format #t "current working directory for client: ~a\n" client-working-dir)
 	 
@@ -108,19 +161,107 @@
 	 ;; exit
 	 (shutdown sock 2)
 	 (close-port sock)
-	 (primitive-exit 0)))))
+	 (primitive-exit 0))))
+
+
+   ;; Process command line arguments and options.
+   ;;
+   ;; Uses SRFI-37 args-fold.
+   ;; The args-fold function takes a list of seeds at the end which represent
+   ;; state as the last arguments. This gets unwieldy quickly, so we use a single
+   ;; alist to make the code more compact and readable.
+
+   (define process-args
+     (lambda args
+       (let* (
+	      ;; options alist
+	      ;; settings here are the defaults for the option values
+	      (opts '(
+		      (includes () std #f)
+		      (files () std #f) ;; all the non option items (operands)
+		      (help #f std #f)
+		      (version #f std #f)
+		      (dbackend "ps" minus-d #f)
+		      (dloglevel 1 minus-d #f)
+		      (dwarning-as-error #f minus-d #f)
+		      ))
+
+	      ;; process the options with args-fold
+	      (opts (args-fold
+		     ;; args
+		     args
+		     
+		     ;; options list
+		     (let ((call-proc-and-exit
+			    (lambda (p)
+			      (lambda (option name arg opts)
+				(p)
+				(primitive-exit 0)
+				))))
+
+		       (list
+			(option '(#\I "include") #t #f
+				(lambda (option name arg opts)
+				  (set-typed-option-field!
+				   opts 'includes opt-val (cons arg (get-typed-option-field opts 'includes opt-val)))
+				  (set-typed-option-field! opts 'includes opt-state #t)
+				  opts
+				  ))
+
+			;; '-d' options
+			(option '("dbackend") #f #t
+				(lambda (option name arg opts)
+				  (set-typed-option-field! opts 'dbackend opt-val arg)
+				  (set-typed-option-field! opts 'dbackend opt-state #t)
+				  opts
+				  ))
+
+			(option '("dwarning-as-error") #f #t
+				(lambda (option name arg opts)
+				  (set-typed-option-field! opts 'dwarning-as-error opt-val arg)
+				  (set-typed-option-field! opts 'dwarning-as-error opt-state #t)
+				  opts
+				  ))
+			
+			(option '(#\h "help") #f #t
+				(call-proc-and-exit show-usage))
+			
+			(option '(#\v "version") #f #t
+				(call-proc-and-exit show-version))
+			))
+
+		     ;; unrecognized options procedure
+		     (lambda (option name arg opts)
+		       (scm-error 'misc-error #f "unrecognized option: ~a" (list name) #f))
+
+		     ;; operand procedure
+		     (lambda (operand opts)
+		       (set! opts
+			     (set-typed-option-field!
+			      opts 'files opt-val (cons operand (get-typed-option-field opts 'files opt-val))))
+		       (set-typed-option-field! opts 'files opt-state #t)
+		       opts)
+
+		     ;; state (referred to as seeds in the doc)
+		     opts)))
+
+	 ;; can do some post processing on opts here such as reversing the list options
+	 (set-typed-option-field! opts 'includes opt-val (reverse (get-typed-option-field opts 'includes opt-val)))
+	 (set-typed-option-field! opts 'files opt-val (reverse (get-typed-option-field opts 'files opt-val)))
+	 
+	 ;; return updated opts
+	 opts
+	 )))
+
+   (define (show-usage)
+     (format #t "usage: \n"))
+
+   (define (show-version)
+     (format #t "lyc ~a \n" version)))
 
 % run server
-#(
-  (catch #t
-	 (lambda ()
-	   (main port))
-	 (lambda (key . parameters)
-	   (begin
-	     (format #t "caught error: ~a\n~a\n" key parameters)
-	     (primitive-exit 1)
-	     ))))
+#(main (cdr (program-arguments)))
 
-;; Local Variables:
-;; mode: Scheme
-;; End:
+% Local variables:
+% mode: scheme
+% End:
