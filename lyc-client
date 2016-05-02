@@ -72,11 +72,6 @@
 	;; this directory.
 	(write-line (getcwd) sock)
 	;; send lilypond command line args to server (minus the local client options)
-	(write lilypond-args)
-	(display lilypond-args) (newline)
-	(prnt "list? " (list? lilypond-args))
-	(prnt "list? " (list? (car lilypond-args)))
-
 	(write-line lilypond-args  sock)
 	;; we have to send the absolute pathname of the file
 	(write-line (realpath file) sock)
