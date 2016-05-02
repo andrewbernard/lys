@@ -1,10 +1,10 @@
-% Lilypond compile server
-%
+% lys - lilypond compile server
+% Uses lilypond to compile file submitted with lyc, the lys client program.
 
 % Notes
 
-% This is lilypond code, not Scheme. But it is composed entirely of
-% guile procedures. This will run using the guile version 1.8 that is installed
+% This is lilypond code, not Scheme, but it is composed entirely of guile
+% procedures. This will run using the guile version 1.8 that is installed
 % locally inside the lilypond distribution.
 
 
@@ -117,10 +117,11 @@
    (define child-process
      (lambda (sock)
        ;; read from the client
-       ;; in order to output in the directory the client is run from
-       ;; the client send us its working directory first.
-       ;; Then we get the file name and command line options.
+       ;; In order to output in the directory the client is run from
+       ;; the client sends us its working directory first.
+       ;; Then we get the lilypond options, and next the filename, a line at a time.
        (let* ((client-working-dir (read-line sock 'trim))
+	      (lilypond-args (string-split (read-line sock 'trim) #\space))
 	      (filename (read-line sock 'trim))
 	      (start-time (start-timer))
 	      (current-dir (getcwd))
@@ -129,13 +130,18 @@
 	      )
 	 (format #t "current working directory for server: ~a\n" current-dir)
 	 (format #t "current working directory for client: ~a\n" client-working-dir)
-	 
+	 (format #t "lilypond args: ~a\n" lilypond-args)
+	 (format #t "args is list? ~a\n" (list? lilypond-args))
+	 (format #t "args is string? ~a\n" (string? lilypond-args))
+;;	 (format #t "string-split ~a\n" (list? (string-split lilypond-args #\space)))
+;;	 (format #t "car list: ~a\n" (car lilypond-args))
 	 (format #t "file: ~a\n" filename)
 	 (format #t "dir: ~a\n" dir)
 	 (format #t "file: ~a\n" file)
 	 (chdir client-working-dir)
 	 
-	 ;; lilypond outputs messages on stderr. send them to the client.
+	 ;; lilypond outputs messages on stderr.
+	 ;; send all output to the client.
 	 (redirect-port sock (current-error-port))
 	 
 	 (catch #t
@@ -153,7 +159,7 @@
 		    )))
 	 (chdir current-dir)
 	 
-	 ;; send response to client
+	 ;; send compile time to client
 	 (let* ((time-taken (elapsed-time start-time (stop-timer))))
 	   (format
 	    sock "Compile completed in ~a\n" (format-elapsed-time time-taken)))

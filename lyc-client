@@ -22,6 +22,8 @@
   ;; args before -- are the client options.
   ;; args remaining after -- are passed to lilypond at the server side.
   ;; the filename must be the last argument.
+
+  ;; the client args
   (let* ((opt-spec
 	  '((version (single-char #\v) (value #f))
 	    (help (single-char #\h) (value #f))
@@ -30,13 +32,13 @@
 	 ;; catch any option processing errors.
 	 (opts
 	  (catch #t
-		 (lambda ()
-		   (getopt-long args opt-spec))
-		 (lambda (key . parameters)
-		   (begin
-		     (format
-		      #t "option processing error: ~a: ~a\n" key parameters)
-		     (primitive-exit 1)))))
+	    (lambda ()
+	      (getopt-long args opt-spec))
+	    (lambda (key . parameters)
+	      (begin
+		(format
+		 #t "option processing error: ~a: ~a\n" key parameters)
+		(primitive-exit 1)))))
 
 	 (help-set (option-ref opts 'help #f))
 	 (version-set (option-ref opts 'version #f))
@@ -44,70 +46,67 @@
 	  (inexact->exact (string->number
 			   (option-ref opts 'port (number->string port-number)))))
 	 (remaining-args (option-ref opts '() '()))
-	 (file (if (not (null? remaining-args)) (last remaining-args) #f)))
-	 
-    (prnt "port " port)
-    (prnt "args: " args)
-    (prnt opt-spec)
-    (prnt opts)
-    (prnt "arguments after --: " remaining-args)
-    (prnt "list? " (list? remaining-args))
-    (prnt "file: " file)
+	 ;;	 (file (if (not (null? remaining-args)) (take-right remaining-args 1) #f))
+	 )
 
-    (if help-set
+    ;; now the lilypond args and filename
+    (if (null? remaining-args)
 	(begin
-	  (show-usage)
-	  (primitive-exit 0)))
-    (if version-set
-	(begin
-	  (show-version)
-	  (primitive-exit 0)))
-
-    (if (not file)
-	(begin
-	  (prnt "file not specified")
+	  (prnt "no lilypond args or file given")
 	  (primitive-exit 1)))
 
-    
-    ;; TCP client
-    (let ((sock (socket PF_INET SOCK_STREAM 0)))
-      (connect sock AF_INET (inet-pton AF_INET "127.0.0.1") port)
-
-      ;; write
-
-      ;; send current working directory to server so that output is produced in
-      ;; this directory.
-      (write-line (getcwd) sock)
+    (let* ((split-list (cons (drop-right remaining-args 1) (take-right remaining-args 1)))
+	   (lilypond-args (car split-list))
+	   (file (car (cdr split-list)))
+	   )
+      (prnt split-list)
+      (prnt file)
       
-      ;; send command line args to server (minus the local client options)
-      ;; we have to send the absolute pathname of the file
-      (write-line (realpath file) sock)
-      ;; indicate done writing without closing socket.
+      ;; TCP client
+      (let ((sock (socket PF_INET SOCK_STREAM 0)))
+	(connect sock AF_INET (inet-pton AF_INET "127.0.0.1") port)
 
-      ;; read
-      ;; get server response
-      (let loop ((line (read-line sock)))
-	(if (not (eof-object? line))
-	    (begin
-	      (format #t "~a\n" line)
-	      (loop (read-line sock)))))
-      
-      ;; finish
-      (shutdown sock 2)
-      (close-port sock))))
+	;; write
+
+	;; send current working directory to server so that output is produced in
+	;; this directory.
+	(write-line (getcwd) sock)
+	;; send lilypond command line args to server (minus the local client options)
+	(write lilypond-args)
+	(display lilypond-args) (newline)
+	(prnt "list? " (list? lilypond-args))
+	(prnt "list? " (list? (car lilypond-args)))
+
+	(write-line lilypond-args  sock)
+	;; we have to send the absolute pathname of the file
+	(write-line (realpath file) sock)
+	;; indicate done writing without closing socket.
+
+	;; read
+	
+	;; get server response
+	(let loop ((line (read-line sock)))
+	  (if (not (eof-object? line))
+	      (begin
+		(format #t "~a\n" line)
+		(loop (read-line sock)))))
+	
+	;; finish
+	(shutdown sock 2)
+	(close-port sock)))))
 
 (define (show-usage)
-     (prnt "Usage: lyc [OPTION]... [--] [LILYPOND-OPTION]... FILE\n")
-     (prnt "Compile FILE with the lys lilypond compile server\n")
-     (prnt "Options:\n")
-     (prnt "lyc options:")
-     (prnt "  -p --port PORT  connect on port PORT")
-     (prnt "  -h --help       show usage")
-     (prnt "  -v --version    show program version\n")
-     (prnt "lilypond options:")
-     (prnt "  --              if there are lyc options, pass lilypond options after --")
-     (prnt "                  otherwise just specify the lilypond options")
-     )
+  (prnt "Usage: lyc [OPTION]... [--] [LILYPOND-OPTION]... FILE\n")
+  (prnt "Compile FILE with the lys lilypond compile server\n")
+  (prnt "Options:\n")
+  (prnt "lyc options:")
+  (prnt "  -p --port PORT  connect on port PORT")
+  (prnt "  -h --help       show usage")
+  (prnt "  -v --version    show program version\n")
+  (prnt "lilypond options:")
+  (prnt "  --              if there are lyc options, pass lilypond options after --")
+  (prnt "                  otherwise just specify the lilypond options")
+  )
 
 (define (show-version)
   (format #t "lyc ~a \n" version)
